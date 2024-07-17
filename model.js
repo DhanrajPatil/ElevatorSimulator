@@ -1,11 +1,12 @@
 
-function Elevator(id, name = "", currentFloor = 0, status = Status.IDLE, direction = Direction.UP, requestQueue = []){
-    this.id = id;
+function Elevator(name, currentFloor = 0, status = Status.IDLE, direction = Direction.UP, requestQueue = []){
     this.name = name;
     this.currentFloor = currentFloor;
     this.status = status;
     this.currentDirection = direction,
     this.requestQueue = requestQueue;
+    this.currentRequest = null;
+    this.isDoorClosed = true;
 }
 
 function Request(floorNo, direction = Direction.NONE) {
@@ -64,6 +65,7 @@ Elevator.prototype.sortRequests = function() {
 Elevator.prototype.pollRequest = function() {
     let currentRequest = this.requestQueue[0];
     this.requestQueue = this.requestQueue.slice(1);
+    this.updateCurrentRequest();
     return currentRequest;
 }
 
@@ -73,9 +75,10 @@ Elevator.prototype.addRequest = function(request) {
         const direction = this.currentFloor > request.floorNo ? Direction.DOWN : Direction.UP;
         this.requestQueue = this.currentDirection === direction ? [request, ...this.requestQueue] : [...this.requestQueue, request];
         this.sortRequests();
+        this.updateCurrentRequest();
     }
 }
 
-Elevator.prototype.getFirstRequest = function(request) {
-    return this.requestQueue[0];
+Elevator.prototype.updateCurrentRequest = function() {
+    this.currentRequest = this.requestQueue[0];
 }

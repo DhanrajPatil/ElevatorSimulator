@@ -32,3 +32,8 @@ function getStatusDisplaysForElevator(elevatorName) {
     const className = '.' + elevatorName + "-current-status";
     return document.querySelectorAll(className);
 }
+
+function getCurrentFloorDuctForElevator(elevatorName) {
+    const elevatorElementDuctsContainer = document.querySelector('.' + elevatorName);
+    return elevatorElementDuctsContainer.querySelector('.current-elevator-floor-duct');
+}
