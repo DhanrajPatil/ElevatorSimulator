@@ -4,7 +4,7 @@ body{
 }
 
 .main-container{
-    background-color: #f4edde;
+    background-color: rgb(245 224 230);
     display: flex;
     flex-direction: column;
     gap: 40px;
@@ -15,7 +15,7 @@ body{
     display: flex;
     justify-content: center;
     align-items: center;
-    background-color: rgb(233, 237, 209);
+    background-color: rgb(240 187 203);
     border: 2px solid #70b4f8;
 }
 
@@ -34,6 +34,7 @@ body{
 .floor-numbers{
     flex: 1;
     display: flex;
+    justify-content: space-evenly;
 }
 
 .floor{
@@ -46,11 +47,12 @@ body{
 
 .section-header{
     width: 85px;
-    font-size: 20px;
+    font-size: 18px;
     display: flex;
     justify-content: center;
     align-items: center;
     border: 2px Solid #70b4f8;
+    font-family: 'Source Sans Pro', sans-serif;
 }
 
 .elevator-section{
@@ -163,7 +165,7 @@ body{
     background-color: #04AA6D;
     color: white;
     font-family: 'Source Sans Pro', sans-serif;
-    font-size: 18px;
+    font-size: 16px;
     padding: 6px 24px;
     border-radius: 5px;
     word-spacing: 3px;

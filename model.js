@@ -1,84 +1,48 @@
-
-function Elevator(name, currentFloor = 0, status = Status.IDLE, direction = Direction.UP, requestQueue = []){
-    this.name = name;
-    this.currentFloor = currentFloor;
-    this.status = status;
-    this.currentDirection = direction,
-    this.requestQueue = requestQueue;
-    this.currentRequest = null;
-    this.isDoorClosed = true;
+function Request(floorNo, direction = Direction.NONE, type = TYPE.INNER) {
+    this.floorNo = floorNo;
+    this.direction = direction;
+    this.requestType = type;
 }
 
-function Request(floorNo, direction = Direction.NONE) {
-    this.floorNo = floorNo;
-    this.currentDirection = direction;
+Request.prototype.isOuterType = function() {
+    return this.requestType === TYPE.BOTH || this.requestType === TYPE.OUTER;
+}
+
+Request.prototype.isInnerType = function() {
+    return this.requestType === TYPE.BOTH || this.requestType === TYPE.INNER;
 }
 
 const Direction = Object.freeze({
-    UP: 0,
-    DOWN: 1,
-    NONE: 2
+    UP: "UP",
+    DOWN: "DOWN",
+    NONE: "NONE"
 });
 
 const Status = Object.freeze({
-    IDLE: 0,
-    MOVING: 1,
-    MAINTENANCE: 2
+    IDLE: "IDLE",
+    MOVING: "MOVING",
+    MAINTENANCE: "MAINTENANCE",
+    STOPPED: "STOPPED",
+    OUTAGE: "OUTAGE"
 });
 
-Elevator.prototype.sortRequests = function() {
-    this.requestQueue.sort((req1, req2) => {
-        //if(req1.direction && )
-        if(this.currentDirection == Direction.UP || this.currentDirection == Direction.NONE) {
-            let req1CorrectDir = this.currentFloor < req1.floorNo;
-            let req2CorrectDir = this.currentFloor < req1.floorNo;
-            if(req1CorrectDir && req2CorrectDir) {
-                return req1.floorNo - req2.floorNo;
-            } else {
-                if(req1CorrectDir) {
-                    return -1;
-                } else if(req2CorrectDir){
-                    return 1;
-                } else {
-                    return req2.floorNo - req1.floorNo;
-                }
-            }
-        }
-        if(this.currentDirection == Direction.DOWN) {
-            let req1CorrectDir = this.currentFloor > req1.floorNo;
-            let req2CorrectDir = this.currentFloor > req1.floorNo;
-            if(req1CorrectDir && req2CorrectDir) {
-                return req2.floorNo - req1.floorNo;
-            } else {
-                if(req1CorrectDir) {
-                    return 1;
-                } else if(req2CorrectDir){
-                    return -1;
-                } else {
-                    return req1.floorNo - req2.floorNo;
-                }
-            }
-        }
-    })
-}
+const TYPE = Object.freeze({
+    INNER: "INNER",
+    OUTER: "OUTER",
+    BOTH: "BOTH"
+});
 
-Elevator.prototype.pollRequest = function() {
-    let currentRequest = this.requestQueue[0];
-    this.requestQueue = this.requestQueue.slice(1);
-    this.updateCurrentRequest();
-    return currentRequest;
-}
 
-Elevator.prototype.addRequest = function(request) {
-    let index = this.requestQueue.findIndex(req => req.floorNo === request.floorNo && req.direction === request.direction);
-    if(index === -1) {
-        const direction = this.currentFloor > request.floorNo ? Direction.DOWN : Direction.UP;
-        this.requestQueue = this.currentDirection === direction ? [request, ...this.requestQueue] : [...this.requestQueue, request];
-        this.sortRequests();
-        this.updateCurrentRequest();
-    }
-}
+const STATUS_ICON_MAP = Object.freeze({
+    IDLE: `<i class="fa-solid fa-hourglass-end"></i>`,
+    MOVING: `<i class="fa-solid fa-bolt-lightning"></i>`,
+    MAINTENANCE: `<i class="fa-solid fa-wrench"></i>`,
+    STOPPED: `<i class="fa-solid fa-anchor"></i>`,
+    OUTAGE: `<i class="fa-solid fa-circle-exclamation"></i>`
+});
 
-Elevator.prototype.updateCurrentRequest = function() {
-    this.currentRequest = this.requestQueue[0];
-}
+const DIRECTION_ICON_MAP = Object.freeze({
+    UP: `<i class="fa-solid fa-up-long"></i>`,
+    DOWN: `<i class="fa-solid fa-down-long"></i>`,
+    NONE: `<i class="fa-solid fa-up-down"></i>`
+});

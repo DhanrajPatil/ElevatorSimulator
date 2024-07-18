@@ -4,7 +4,7 @@ const afterDoorCloseStarElevatorInMillis = 1500;
 const openCloseButtonColorChangeInMillis = 1000;
 const afterElevatorStopDoorOpenInMillis = 1000;
 
-const multiElevatorManager = new MultiElevatorSystem();
+const multiElevatorManager = new MultiElevatorSystem(0, 10);
 const executeNextRequestTimer = {};
 const openLiftDoorTimer = {};
 
@@ -27,18 +27,28 @@ function insideUserInterfaceButtonClicked(event) {
             closeElevatorDoor(elevator);
         }
         event.target.style.background = "#ec7cac";
-        setTimeout( () => {changeDoorOpenCloseButtonColor(elevator, buttonClickLabel)}, openCloseButtonColorChangeInMillis);
+        setTimeout( () => changeDoorOpenCloseButtonColor(elevator, buttonClickLabel), openCloseButtonColorChangeInMillis);
     } else {
         if(currentFloorNo != requestedFloorNo) {
             elevator.addRequest(new Request(requestedFloorNo));
             if(elevator.status === Status.IDLE && elevator.isDoorClosed) {
-                updateElevatorStatusToMoving(elevator);
-                updateElevatorDirection(elevator);
-                clearTimeout(openLiftDoorTimer[elevator.name]);
-                closeElevatorDoor(elevator);
+                startProcessingRequestWhenIdleStatus(elevator);
             }
             event.target.style.background = "#ec7cac";
         }
+    }
+}
+
+function startProcessingRequestWhenIdleStatus(elevator){
+    elevator.updateCurrentDirection(updateCurrentDirectionOnAllDisplays);
+    if(elevator.currentRequest.requestType === TYPE.OUTER && elevator.currentFloor === elevator.currentRequest.floorNo) {
+        const completedRequest = elevator.pollRequest();
+        elevator.updateCurrentStatus(updateCurrentStatusOnAllDisplays, Status.STOPPED);
+        setTimeout( () => {openLiftDoorTimer[elevator.name] = openElevatorDoor(elevator, completedRequest)}, afterElevatorStopDoorOpenInMillis);
+    } else {
+        elevator.updateCurrentStatus(updateCurrentStatusOnAllDisplays, Status.MOVING);
+        clearTimeout(openLiftDoorTimer[elevator.name]);
+        closeElevatorDoor(elevator);
     }
 }
 
@@ -50,9 +60,9 @@ function moveElevetorFromCurrentToDestinationFloor(elevator, change) {
         elevator.currentFloor = i;
         updateCurrentFloorNoOnAllDisplays(elevator);
         if(i == elevator.currentRequest.floorNo){
-            elevator.pollRequest();
+            const completedRequest = elevator.pollRequest();
             clearInterval(elevatorRunning);
-            setTimeout( () => {openLiftDoorTimer[elevator.name] = openElevatorDoor(elevator, true)}, afterElevatorStopDoorOpenInMillis);
+            setTimeout( () => {openLiftDoorTimer[elevator.name] = openElevatorDoor(elevator, completedRequest)}, afterElevatorStopDoorOpenInMillis);
         }
         i = i + change;
     }, elevatorShouldMoveToNextFloorInMillis);
@@ -69,30 +79,28 @@ function moveElevatorToNextOrPrevFloorDuct(prevOrNextDuct, elevator){
 
 function executeNextRequestIfExists(elevator) {
     if(elevator.requestQueue.length == 0) {
-        elevator.status = Status.IDLE;
-        updateCurrentStatusOnAllDisplays(elevator);
+        elevator.updateCurrentStatus(updateCurrentStatusOnAllDisplays, Status.IDLE);
+        elevator.updateCurrentDirection(updateCurrentDirectionOnAllDisplays, Direction.NONE);
         return;
     }
-    updateElevatorStatusToMoving(elevator);
-    let change = updateElevatorDirection(elevator);
+    elevator.updateCurrentStatus(updateCurrentStatusOnAllDisplays, Status.MOVING);
+    let change = elevator.updateCurrentDirection(updateCurrentDirectionOnAllDisplays);
     moveElevetorFromCurrentToDestinationFloor(elevator, change);
 }
 
-function updateElevatorDirection(elevator) {
-    let change = elevator.currentFloor > elevator.currentRequest.floorNo ? -1 : 1;
-    elevator.currentDirection = change == 1 ? Direction.UP : Direction.DOWN;
-    updateCurrentDirectionOnAllDisplays(elevator);
-    return change;
-}
-
-
-function openElevatorDoor(elevator, currentRequestComplete) {
+function openElevatorDoor(elevator, completedRequest) {
     const elevatorElement = getElevatorElementByName(elevator.name);
     elevator.isDoorClosed = false;
+    elevator.updateCurrentStatus(updateCurrentStatusOnAllDisplays, Status.STOPPED);
     elevatorElement.classList.add("open-door-elevator");
     elevatorElement.classList.remove("closed-door-elevator");
-    if(currentRequestComplete) {
-        changeFloorButtonColorOnRequestComplete(elevator);
+    if(completedRequest) {
+        if(completedRequest.isOuterType()) {
+            changeOuterInterfaceButtonColorOnRequestComplete(completedRequest);
+        } 
+        if(completedRequest.isInnerType()) {
+            changeInnerInterfaceButtonColorOnRequestComplete(elevator);
+        }
     }
     return setTimeout( function(){
         closeElevatorDoor(elevator);
@@ -111,11 +119,17 @@ function closeElevatorDoor(elevator) {
 
 function outsideInterfaceButtonClicked(event){
     const direction = event.target.dataset.requestDirection;
-    const requestAtFloor = event.currentTarget.requestAtFloor;
+    const requestAtFloor = parseInt(event.currentTarget.dataset.requestAtFloor, 10);
     if(!direction){
         return;
     }
-    event.target.style.border = "2px Solid #f46c6c";
+    const request = new Request(requestAtFloor, direction === "UP" ? Direction.UP : Direction.DOWN, TYPE.OUTER);
+    changeOuterInterfaceButtonColorOnRequest(request);
+    const elevator = multiElevatorManager.assignRequestToElevator(request);
+    if(elevator.status === Status.IDLE && elevator.isDoorClosed) {
+        elevator.updateCurrentRequest();
+        startProcessingRequestWhenIdleStatus(elevator);
+    }
 }
 
 function installElevator() {

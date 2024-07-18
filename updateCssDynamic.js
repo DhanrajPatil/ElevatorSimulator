@@ -6,17 +6,15 @@ function updateCurrentFloorNoOnAllDisplays(elevator){
 
 function updateCurrentDirectionOnAllDisplays(elevator){
     const allDirectionDisplays = getDirectionDisplaysForElevator(elevator.name);
-    const directionIcon = elevator.currentDirection === Direction.UP ? `<i class="fa-solid fa-up-long"></i>` : `<i class="fa-solid fa-down-long"></i>`;
-    allDirectionDisplays.forEach(dis => dis.innerHTML = directionIcon);
+    allDirectionDisplays.forEach(dis => dis.innerHTML = DIRECTION_ICON_MAP[elevator.currentDirection]);
 }
 
 function updateCurrentStatusOnAllDisplays(elevator){
     const allStatusDisplays = getStatusDisplaysForElevator(elevator.name);
-    const statusIcon = elevator.status === Status.IDLE ? `<i class="fa-solid fa-hourglass-end"></i>` : `<i class="fa-solid fa-bolt-lightning"></i>`;
-    allStatusDisplays.forEach(dis => dis.innerHTML = statusIcon);
+    allStatusDisplays.forEach(dis => dis.innerHTML = STATUS_ICON_MAP[elevator.status]);
 }
 
-function changeFloorButtonColorOnRequestComplete(elevator) {
+function changeInnerInterfaceButtonColorOnRequestComplete(elevator) {
     const button = getElevatorInterfaceButtonByNameAndNo(elevator.name, elevator.currentFloor)
     button.style.background = "rgba(178, 223, 249, 0.531)";
 }
@@ -26,7 +24,12 @@ function changeDoorOpenCloseButtonColor(elevator, doorOpenCloseButtonString) {
     button.style.background = "rgba(178, 223, 249, 0.531)";
 }
 
-function updateElevatorStatusToMoving(elevator) {
-    elevator.status = Status.MOVING;
-    updateCurrentStatusOnAllDisplays(elevator);
+function changeOuterInterfaceButtonColorOnRequestComplete(request) {
+    const buttons = getOuterInterfaceRequestedButtons(request);
+    buttons.forEach(button => button.style.border = 'none');
+}
+
+function changeOuterInterfaceButtonColorOnRequest(request) {
+    const buttons = getOuterInterfaceRequestedButtons(request);
+    buttons.forEach(button => button.style.border = "2px Solid #f46c6c");
 }

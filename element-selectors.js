@@ -15,7 +15,7 @@ function getElevatorInterfaceByName(elevatorName) {
 
 function getElevatorInterfaceButtonByNameAndNo(elevatorName, floorNo){
     const buttonInterface = getElevatorInterfaceByName(elevatorName);
-    return buttonInterface.querySelector(`[data-requested-floor-no="${floorNo}"`);
+    return buttonInterface.querySelector(`[data-requested-floor-no="${floorNo}"]`);
 }
 
 function getNoDisplaysForElevator(elevatorName) {
@@ -36,4 +36,14 @@ function getStatusDisplaysForElevator(elevatorName) {
 function getCurrentFloorDuctForElevator(elevatorName) {
     const elevatorElementDuctsContainer = document.querySelector('.' + elevatorName);
     return elevatorElementDuctsContainer.querySelector('.current-elevator-floor-duct');
+}
+
+function getOuterInterfaceRequestedButtons(request){
+    //const elevatorOuterInterface = document.querySelector('.' + elevatorName + '-floor-numbers');
+    const dataFloorAttr = `[data-request-at-floor="${request.floorNo}"]`;
+    const floorButtons = document.querySelectorAll(dataFloorAttr);
+    const dataAttr = `[data-request-direction="${request.direction}"]`
+    const requestButtons = [];
+    floorButtons.forEach(buttons => requestButtons.push(buttons.querySelector(dataAttr)));
+    return requestButtons;
 }
